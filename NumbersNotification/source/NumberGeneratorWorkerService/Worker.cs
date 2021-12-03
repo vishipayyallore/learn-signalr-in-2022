@@ -1,5 +1,5 @@
 using Microsoft.Azure.Cosmos;
-using NumberGeneratorWorkerService.Domain;
+using NumbersNotification.Core.Domain;
 
 namespace NumberGeneratorWorkerService
 {

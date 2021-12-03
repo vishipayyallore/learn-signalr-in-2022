@@ -1,5 +1,5 @@
 ﻿using Microsoft.Azure.Cosmos;
-using NumbersChangeFeedProcessor;
+using NumbersNotification.Core.Domain;
 
 string _endpointUrl = "<replace with your Account Endpoint URL>";
 string _primaryKey = "<replace with your Account Key>";

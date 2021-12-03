@@ -1,7 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace NumbersChangeFeedProcessor
+namespace NumbersNotification.Core.Domain
 {
+
     public class Reading
     {
         [JsonProperty(PropertyName = "id")]
@@ -10,7 +11,11 @@ namespace NumbersChangeFeedProcessor
         [JsonProperty(PropertyName = "company")]
         public string Company { get; set; } = "No Name";
 
+        [JsonProperty(PropertyName = "createdon")]
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+
         [JsonProperty(PropertyName = "value")]
         public int Value { get; set; } = 9999;
     }
+
 }

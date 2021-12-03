@@ -1,10 +1,17 @@
 ﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Configuration;
 using NumbersNotification.Core.Domain;
 
-string _endpointUrl = "<replace with your Account Endpoint URL>";
-string _primaryKey = "<replace with your Account Key>";
+IConfiguration _configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json")
+    .AddUserSecrets("42B3177E-1CA6-448F-8F9A-1294955F5337")
+    .Build();
+
+string _endpointUrl = _configuration["CosmosDbConnectionStrings:AccountEndpoint"];
+string _primaryKey = _configuration["CosmosDbConnectionStrings:AccountKey"];
 string _databaseId = "ToDoList";
 string _containerId = "numbers";
+
 
 using (var client = new CosmosClient(_endpointUrl, _primaryKey))
 {

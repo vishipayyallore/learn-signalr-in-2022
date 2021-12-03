@@ -1,4 +1,6 @@
 using Microsoft.Azure.Cosmos;
+using NumberGeneratorWorkerService.Services;
+using NumbersNotification.Core.Common;
 using NumbersNotification.Core.Domain;
 
 namespace NumberGeneratorWorkerService
@@ -9,17 +11,9 @@ namespace NumberGeneratorWorkerService
         private readonly ILogger<Worker> _logger;
         private readonly IConfiguration _configuration;
 
-        // The name of the database and container we will create
-        // TODO: Move these two into configuration file.
-        const string databaseId = "ToDoList";
-        const string containerId = "numbers";
-        const string partitionKey = "/company";
-
-        int value = 1;
-
         private readonly CosmosClient _cosmosClient;
         private readonly Database _database;
-        private Container _container;
+        private readonly Container _container;
 
         public Worker(ILogger<Worker> logger, IConfiguration configuration)
         {
@@ -27,24 +21,48 @@ namespace NumberGeneratorWorkerService
 
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
 
-            _cosmosClient = new CosmosClient(_configuration["CosmosDbConnectionStrings:AccountEndpoint"],
-                                             _configuration["CosmosDbConnectionStrings:AccountKey"],
-                                             new CosmosClientOptions() { ApplicationName = "NumberGeneratorWorkerService" });
+            _cosmosClient = CreatCosmosDbClient(GetConfigurationValue(Constants.CosmosDB.AccountEndpoint),
+                                                GetConfigurationValue(Constants.CosmosDB.AccountKey),
+                                                Constants.CosmosDB.ApplicationName);
 
-            _database = _cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId).GetAwaiter().GetResult();
+            _database = CreateCosmosDatabase(GetConfigurationValue(Constants.NotificationDataStore.DatabaseId));
 
-            _container = _database.CreateContainerIfNotExistsAsync(containerId, partitionKey).GetAwaiter().GetResult();
+            _container = CreateCosmosContainer(GetConfigurationValue(Constants.NotificationDataStore.ContainerId),
+                                                GetConfigurationValue(Constants.NotificationDataStore.PartitionKey));
+        }
+
+        private static CosmosClient CreatCosmosDbClient(string accountEndpoint, string accountKey, string applicationName)
+        {
+            return new CosmosClient(accountEndpoint, accountKey,
+                                                         new CosmosClientOptions() { ApplicationName = applicationName });
+        }
+
+        private Database CreateCosmosDatabase(string databaseId)
+        {
+            return _cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId)
+                            .GetAwaiter()
+                            .GetResult();
+        }
+
+        private Container CreateCosmosContainer(string containerId, string partitionKey)
+        {
+            return _database.CreateContainerIfNotExistsAsync(containerId, partitionKey)
+                            .GetAwaiter()
+                            .GetResult();
+        }
+
+        private string GetConfigurationValue(string key)
+        {
+            return _configuration[key];
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+
             while (!stoppingToken.IsCancellationRequested)
             {
-                value++;
-                if (value > 5)
-                {
-                    value = 1;
-                }
+
+                var value = MeterReadingService.GetCurrentReading();
 
                 try
                 {
@@ -54,7 +72,6 @@ namespace NumberGeneratorWorkerService
                     };
 
                     var response = await _container.CreateItemAsync(reading, new PartitionKey(reading.Company));
-
                 }
                 catch (CosmosException de)
                 {
@@ -73,18 +90,9 @@ namespace NumberGeneratorWorkerService
                 _logger.LogInformation($"Worker running at: {DateTimeOffset.Now} :: Value: {value}");
                 await Task.Delay(5000, stoppingToken);
             }
+
         }
 
-        //private async Task BasicOperations()
-        //{
-        //    this.client = new DocumentClient(new Uri(ConfigurationManager.AppSettings["accountEndpoint"]), ConfigurationManager.AppSettings["accountKey"]);
-
-        //    await this.client.CreateDatabaseIfNotExistsAsync(new Database { Id = "Users" });
-
-        //    await this.client.CreateDocumentCollectionIfNotExistsAsync(UriFactory.CreateDatabaseUri("Users"), new DocumentCollection { Id = "WebCustomers" });
-
-        //    Console.WriteLine("Database and collection validation complete");
-        //}
-
     }
+
 }

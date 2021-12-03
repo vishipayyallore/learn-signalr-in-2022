@@ -7,7 +7,7 @@
         public static int GetCurrentReading()
         {
             value++;
-            if (value > 5)
+            if (value > 100000)
             {
                 value = 1;
             }

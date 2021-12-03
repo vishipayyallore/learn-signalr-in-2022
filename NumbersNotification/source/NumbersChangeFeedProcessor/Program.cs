@@ -22,7 +22,7 @@ using (var client = new CosmosClient(_endpointUrl, _primaryKey))
 
     var builder = container.GetChangeFeedProcessorBuilder("numbersChangedProcessor", (IReadOnlyCollection<Reading> input, CancellationToken cancellationToken) =>
     {
-        Console.WriteLine(input.Count + " Changes Received");
+        Console.WriteLine( $"{DateTimeOffset.Now} :: {input.Count} Changes Received");
 
         foreach (var doc in input)
         {
@@ -43,6 +43,3 @@ using (var client = new CosmosClient(_endpointUrl, _primaryKey))
     Console.WriteLine("Stopping Change Feed Processor");
     await processor.StopAsync();
 }
-// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
-

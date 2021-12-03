@@ -88,7 +88,7 @@ namespace NumberGeneratorWorkerService
                 }
 
                 _logger.LogInformation($"Worker running at: {DateTimeOffset.Now} :: Value: {value}");
-                await Task.Delay(5000, stoppingToken);
+                await Task.Delay(10, stoppingToken);
             }
 
         }
